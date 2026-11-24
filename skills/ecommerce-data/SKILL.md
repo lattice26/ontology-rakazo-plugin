@@ -22,10 +22,15 @@ its sheet into an answer for the user (see the `ecommerce-data-results` skill).
      over. A fresh conversation does not carry earlier assumptions into the new question.
    - **Lost the id** (an earlier chat, or it scrolled away): call `list_ontology_conversations` and continue
      the one whose questions match, or start new if none does.
-3. If the agent needs the user to decide (which shop, which period), the user usually gets a question
+3. **Let the agent do the math.** When the user wants a number derived from data the agent fetched (a share,
+   a growth rate, a period-over-period change, a ratio, a ranking across several results, a re-filter or
+   re-sort), ask for it in the same conversation (pass its `conversation_id`). The agent computes it from the
+   full rows it holds and says how. ⛔ Compute it yourself, even simple arithmetic: what you see is a summary
+   and a few sample rows, not the data.
+4. If the agent needs the user to decide (which shop, which period), the user usually gets a question
    card while you wait and the wait continues by itself: do not ask again. Only when the wait returns
    `needs_user`, ask the user yourself, then call `reply_ontology_agent` with their answer and wait.
-4. If the user changes their mind while it runs, call `cancel_ontology_agent`.
+5. If the user changes their mind while it runs, call `cancel_ontology_agent`.
 
 ## Writing the question
 
@@ -33,15 +38,17 @@ its sheet into an answer for the user (see the `ecommerce-data-results` skill).
   question: the agent splits it into the angles it needs (trend, products, creators, refunds, ads…).
   ⛔ Pre-split it into many small asks, and ⛔ ask for things the user did not ask about.
 - **Follow-ups say only what changed**: "same, but for last month", "split that by channel",
-  "why did the 18th drop?". The conversation already holds the rest.
+  "why did the 18th drop?", "how much did each month grow?", "which of those shops has the highest
+  refund rate?", "what share of GMV came from the top 3 products?". The conversation already holds the rest.
 - **Copy names exactly**: shop names, `@handles`, product titles and ids character for character,
   punctuation included. "PetPhone" and "Pet-Phone" can be two different shops.
 - **Tag a bare id with its kind**: `Shop:1784602265804`, `Product:1732504848157741067`,
   `Creator:…`, `Video:…`. A bare long number could be any of them.
 - **Keep dates as said**: "yesterday", "last 7 days", "this month". The agent reads them on the
   shop's own calendar. ⛔ Turn them into dates yourself.
-- **Keep business words exact**: 样品单 / 寄样单 are sample orders (free samples shipped), not sample
-  requests; 退款 is refunds, 退货 is returns; GMV, units sold and orders are different numbers.
+- **Keep business words exact**: sample orders (free samples shipped to creators) are not sample requests;
+  refunds are not returns; GMV, units sold and orders are different numbers. Pass the user's own term rather
+  than a near synonym.
 - **Remembered defaults**: when the user has told you their main shop or currency, keep it in memory
   and say it in the question ("for PetPhone (TikTok Shop)") instead of making the agent ask again.
 

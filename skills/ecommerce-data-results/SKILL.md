@@ -11,7 +11,7 @@ description: How to read what the e-commerce data agent returns (its data sheet,
 
 - **answered**: the text is a data sheet. The structured result's `figures` holds the same numbers
   ready for charts: `totals`, `charts` (daily series: `x` dates and `series[].values`) and `tables`
-  (complete rankings only). Read the sheet for meaning, use `figures` when you draw or build a page.
+  (complete rankings only; `columns` are plain heading strings). Read the sheet for meaning, use `figures` when you draw or build a page.
 - **needs_user**: only the user can settle something (see the `ecommerce-data` skill).
 - **unavailable**: it cannot answer this. `reason` says why: `question_unclear` (rephrase or ask the
   user), `data_missing` (the data is not there for that shop or period), `capability_missing` (this
@@ -40,7 +40,9 @@ A sheet has the figures, then a **Basis and gaps** part. Both matter:
 1. Lead with the conclusion in one or two sentences: what the numbers mean for the user's question.
    When they asked for a judgement or a recommendation, give it, tied to the figures behind it.
 2. Then the evidence: the key figures, a short table when there are several rows. Copy every figure
-   exactly as given; you may compare or add them up only when you can show how.
+   exactly as given. When the answer needs a figure the sheet does not have (a share, a growth rate, a
+   ratio, a comparison or ranking across results), ask the agent for it in the same conversation first
+   (the `ecommerce-data` skill); ⛔ compute it yourself.
 3. Then the gaps that change how far the figures can be trusted.
 4. End with two or three follow-up directions the user can pick, matched to the question, for example:
    - after a shop diagnosis: which product caused the drop, refund reasons, which creators to keep;

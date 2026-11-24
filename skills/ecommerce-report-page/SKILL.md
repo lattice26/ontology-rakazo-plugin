@@ -12,7 +12,8 @@ Build only from what `wait_ontology_agent` returned in this conversation:
 - `figures.totals`: headline numbers (`name`, `sum`, `unit`).
 - `figures.charts`: daily series. `x` is the dates, each `series` has a `name` and `values` in the same
   order; `null` is a missing day (leave a gap, ⛔ zero).
-- `figures.tables`: complete rankings (`columns` with units, `rows`).
+- `figures.tables`: complete rankings. `columns` are heading strings with the unit already in them
+  ("Shop GMV (USD)"), `rows` hold one value per column in the same order.
 - The data sheet's text for anything else, and for the Basis and gaps.
 
 `figures` is everything the agent fetched, labelled by shop (`about`) and dates. The data sheet decides
@@ -21,7 +22,12 @@ something out (a demo copy of a shop, a revoked shop, a window it replaced), lea
 When a figure and the sheet disagree, follow the sheet.
 
 Copy values as given. Format them for reading ("$184.27", "3 orders") but ⛔ recompute, round further,
-fill in or invent a number, label or date. When a section has no data, leave it out.
+fill in or invent a number, label or date. When the page needs a derived number (a share, growth, a ratio),
+ask the agent for it in the same conversation first. When a section has no data, leave it out.
+
+Every component prop that shows text (table headings, bar labels, metric labels, captions) takes a plain
+string: pass the strings from `figures` as they are, ⛔ pass an object. A component given an object fails to
+render its whole section.
 
 ## Layout (call `save_page` with `{"help": true}` once for the component guide)
 
@@ -31,7 +37,7 @@ fill in or invent a number, label or date. When a section has no data, leave it 
 4. A `Section` per chart: `LineChart` for a daily series (`points` from `x` and `values`, extra series
    as `lines`), the unit in the heading or caption. Amounts and counts on separate charts.
 5. `Bars` for a ranking (label column and its value), at most 15 bars, in the order given.
-6. `Table` for detail rows, `sortable`.
+6. `Table` for detail rows, `sortable`, with `figures.tables[].columns` as its headings.
 7. A final `Section` "Basis and gaps" with the sheet's caveats as a `BulletList`, and a `Footnote`
    with the data cutoff ("data complete through 2026-11-21").
 
