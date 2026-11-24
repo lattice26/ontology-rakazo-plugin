@@ -1,23 +1,51 @@
 ---
 name: ecommerce-data
-description: Answer questions about the user's e-commerce business with real data — store sales, GMV, orders, traffic, conversion, products, creators and affiliates, videos, ads, refunds, settlements and market trends on TikTok Shop, Shopify or Amazon. Use whenever the answer depends on numbers from these sources.
+description: Answer questions about the user's e-commerce business with real data — shop sales, GMV, orders, traffic, conversion, products, creators and affiliates, videos and LIVE, ads, refunds and service score, settlements and payouts, category markets and competitors, and brand visibility in AI search (GEO), on TikTok Shop, Shopify or Amazon. Use whenever the answer depends on numbers from these sources, and before saying such data is unavailable.
 ---
 
-1. Call `ask_ontology_agent` with the user's question in their own words. Keep relative dates
-   ("yesterday", "last 7 days") exactly as said; the data agent resolves them in the shop's time zone.
-   If this chat already has a `conversation_id` from an earlier call, pass it so the agent keeps
-   the context.
-2. Call `wait_ontology_agent` with the returned `turn_id` right away. It blocks until the answer is
-   ready; if it says the turn is still running, call it again with the same `turn_id`. The progress card
-   under the first call already shows the user each step live, so do not narrate the steps yourself.
-3. Answer from what it returns. Keep every figure, currency and date range exactly; you may
-   summarise, compare or add advice, but never change or invent numbers.
-4. If the data agent needs the user to decide, the user usually gets a question card while
-   `wait_ontology_agent` runs, and the wait continues by itself after they answer: do not ask again.
-   Only when the wait returns `needs_user` ask the user yourself, then call `reply_ontology_agent`
-   with the same `conversation_id` and their answer, and wait again.
-5. If it cannot answer (unavailable or failed), tell the user why in plain words and offer its
-   suggestions. Do not fill the gap with estimates.
-6. If the user changes their mind while it runs, call `cancel_ontology_agent`.
-7. For a recurring report ("every morning send me yesterday's GMV"), make a routine whose prompt is the
-   question in the user's words with its relative dates, so each run asks the data agent afresh.
+# Ask the e-commerce data agent
+
+A data agent with the user's real shop data answers these questions. It drafts its own plan, queries,
+checks definitions and hands back a data sheet. Your job is to pass it the right question, then turn
+its sheet into an answer for the user (see the `ecommerce-data-results` skill).
+
+## The call
+
+1. Call `ask_ontology_agent` with the question, then `wait_ontology_agent` with its `turn_id` right away.
+   The wait blocks until the answer is ready; if it says the turn is still running, wait again with the
+   same `turn_id`. The card under the first call shows the user every step live: do not narrate steps.
+2. Pass the `conversation_id` from the first call on every later question in this chat. The agent then
+   remembers what it already fetched, which shop was meant and what was decided.
+   Start without it only when the user turns to an unrelated shop or topic.
+3. If the agent needs the user to decide (which shop, which period), the user usually gets a question
+   card while you wait and the wait continues by itself: do not ask again. Only when the wait returns
+   `needs_user`, ask the user yourself, then call `reply_ontology_agent` with their answer and wait.
+4. If the user changes their mind while it runs, call `cancel_ontology_agent`.
+
+## Writing the question
+
+- **One business question, in the user's words.** "Give my PetPhone shop a deep diagnosis" is one
+  question: the agent splits it into the angles it needs (trend, products, creators, refunds, ads…).
+  ⛔ Pre-split it into many small asks, and ⛔ ask for things the user did not ask about.
+- **Follow-ups say only what changed**: "same, but for last month", "split that by channel",
+  "why did the 18th drop?". The conversation already holds the rest.
+- **Copy names exactly**: shop names, `@handles`, product titles and ids character for character,
+  punctuation included. "PetPhone" and "Pet-Phone" can be two different shops.
+- **Tag a bare id with its kind**: `Shop:1784602265804`, `Product:1732504848157741067`,
+  `Creator:…`, `Video:…`. A bare long number could be any of them.
+- **Keep dates as said**: "yesterday", "last 7 days", "this month". The agent reads them on the
+  shop's own calendar. ⛔ Turn them into dates yourself.
+- **Keep business words exact**: 样品单 / 寄样单 are sample orders (free samples shipped), not sample
+  requests; 退款 is refunds, 退货 is returns; GMV, units sold and orders are different numbers.
+- **Remembered defaults**: when the user has told you their main shop or currency, keep it in memory
+  and say it in the question ("for PetPhone (TikTok Shop)") instead of making the agent ask again.
+
+## What it can answer
+
+- **The user's own shops** (their own ledger): sales, GMV, orders, visitors, conversion, products,
+  affiliate creators, videos and LIVE, refunds and returns, service score, settlements and payouts, ads.
+- **The public market**: category sizes and trends, competing shops and products, creators to work with.
+- **GEO**: how a brand shows up in AI search answers.
+
+The shop's own ledger and public market figures are two different sets of numbers. A question that
+mixes them gets both, labelled; ⛔ compare them as if they were one.
